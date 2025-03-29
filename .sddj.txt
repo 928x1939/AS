@@ -1,0 +1,147 @@
+﻿-- Loadstring GUI mit Aimbot, ESP, und Speed Walk
+
+-- UI erstellen
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local AimbotButton = Instance.new("TextButton")
+local ESPButton = Instance.new("TextButton")
+local SpeedWalkButton = Instance.new("TextButton")
+local TitleLabel = Instance.new("TextLabel")
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "CustomUI"
+ScreenGui.Enabled = true
+
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.Size = UDim2.new(0, 300, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+TitleLabel.Parent = MainFrame
+TitleLabel.Text = "Custom Aimbot UI"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.Font = Enum.Font.FredokaOne
+TitleLabel.TextSize = 28
+TitleLabel.Size = UDim2.new(1, 0, 0, 50)
+TitleLabel.BackgroundTransparency = 1
+
+AimbotButton.Parent = MainFrame
+AimbotButton.Size = UDim2.new(0, 250, 0, 40)
+AimbotButton.Position = UDim2.new(0.5, -125, 0.3, 0)
+AimbotButton.Text = "🔴 Aimbot OFF"
+AimbotButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotButton.Font = Enum.Font.SourceSansBold
+AimbotButton.TextSize = 18
+
+ESPButton.Parent = MainFrame
+ESPButton.Size = UDim2.new(0, 250, 0, 40)
+ESPButton.Position = UDim2.new(0.5, -125, 0.4, 0)
+ESPButton.Text = "🔴 ESP OFF"
+ESPButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPButton.Font = Enum.Font.SourceSansBold
+ESPButton.TextSize = 18
+
+SpeedWalkButton.Parent = MainFrame
+SpeedWalkButton.Size = UDim2.new(0, 250, 0, 40)
+SpeedWalkButton.Position = UDim2.new(0.5, -125, 0.5, 0)
+SpeedWalkButton.Text = "🔴 Speed Walk OFF"
+SpeedWalkButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedWalkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedWalkButton.Font = Enum.Font.SourceSansBold
+SpeedWalkButton.TextSize = 18
+
+-- Aimbot Variablen
+local aimbotEnabled = false
+
+local function toggleAimbot()
+    aimbotEnabled = not aimbotEnabled
+    AimbotButton.Text = aimbotEnabled and "🟢 Aimbot ON" or "🔴 Aimbot OFF"
+end
+AimbotButton.MouseButton1Click:Connect(toggleAimbot)
+
+-- ESP Variablen
+local espEnabled = false
+local function toggleESP()
+    espEnabled = not espEnabled
+    ESPButton.Text = espEnabled and "🟢 ESP ON" or "🔴 ESP OFF"
+    -- Hier kannst du den ESP-Code aktivieren, z.B. Bounding Boxen und andere ESP-Features
+end
+ESPButton.MouseButton1Click:Connect(toggleESP)
+
+-- Speed Walk Variablen
+local speedWalkEnabled = false
+local function toggleSpeedWalk()
+    speedWalkEnabled = not speedWalkEnabled
+    SpeedWalkButton.Text = speedWalkEnabled and "🟢 Speed Walk ON" or "🔴 Speed Walk OFF"
+    -- Ändere die Gehgeschwindigkeit
+    if speedWalkEnabled then
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = 300
+    else
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = 16
+    end
+end
+SpeedWalkButton.MouseButton1Click:Connect(toggleSpeedWalk)
+
+-- Aimbot-Funktion (Beispiel für Zielverfolgung)
+local function aimbotFunction()
+    if aimbotEnabled then
+        local player = game.Players.LocalPlayer
+        local closestPlayer = nil
+        local shortestDistance = math.huge
+        local camera = workspace.CurrentCamera
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") then
+                local character = otherPlayer.Character
+                local head = character:FindFirstChild("Head")
+                if head then
+                    local screenPosition, onScreen = camera:WorldToViewportPoint(head.Position)
+                    if onScreen then
+                        local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - game:GetService("UserInputService"):GetMouseLocation()).Magnitude
+                        if distance < shortestDistance then
+                            shortestDistance = distance
+                            closestPlayer = character
+                        end
+                    end
+                end
+            end
+        end
+        
+        if closestPlayer then
+            local targetPosition = closestPlayer:FindFirstChild("Head").Position
+            -- Führe hier das Zielen aus (dieser Teil kann mit der Maus oder anderen Techniken angepasst werden)
+            game:GetService("UserInputService"):SetMouseLocation(Vector2.new(targetPosition.X, targetPosition.Y))
+        end
+    end
+end
+
+-- ESP Boxen (Als Beispiel)
+local function espFunction()
+    if espEnabled then
+        -- Erstelle ESP Boxen oder andere visualisierte Effekte für die Spieler
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            if otherPlayer ~= game.Players.LocalPlayer and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") then
+                local character = otherPlayer.Character
+                local head = character:FindFirstChild("Head")
+                if head then
+                    local box = Drawing.new("Square")
+                    box.Position = Vector2.new(head.Position.X, head.Position.Y)
+                    box.Size = Vector2.new(50, 50)
+                    box.Thickness = 2
+                    box.Color = Color3.fromRGB(255, 0, 0)
+                    box.Filled = false
+                    -- Beispiel für ESP Box für den Kopf des Spielers
+                end
+            end
+        end
+    end
+end
+
+-- RunService für Aimbot und ESP Aktualisierungen
+game:GetService("RunService").Heartbeat:Connect(function()
+    aimbotFunction()
+    espFunction()
+end)
